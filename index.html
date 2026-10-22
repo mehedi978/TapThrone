@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#10152b">
+<title>TapThrone — Claim Your Throne</title>
+<style>
+  :root { color-scheme: dark; --bg:#10152b; --panel:#1a2140; --gold:#ffd66b; --muted:#aab4d6; --blue:#7c9cff; }
+  * { box-sizing:border-box; }
+  body { margin:0; min-height:100vh; font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif; color:#f7f8ff; background:radial-gradient(circle at 50% 0%,#283665 0,#10152b 48%,#0b1022 100%); }
+  .app { width:min(100%,520px); margin:0 auto; padding:18px 16px 28px; }
+  header { display:flex; align-items:center; justify-content:space-between; gap:12px; }
+  .brand { font-size:1.45rem; font-weight:900; letter-spacing:.3px; }
+  .brand span { color:var(--gold); }
+  .pill { padding:7px 11px; border:1px solid #39456f; border-radius:999px; color:#dce3ff; font-size:.78rem; background:#1a2140; }
+  .hero { text-align:center; padding:26px 8px 16px; }
+  .eyebrow { color:var(--muted); font-size:.75rem; letter-spacing:2px; font-weight:800; }
+  .coins { font-size:clamp(2.3rem,10vw,3.3rem); font-weight:950; letter-spacing:-1.5px; margin:6px 0 3px; font-variant-numeric:tabular-nums; }
+  .coin-label { color:var(--gold); font-size:.85rem; font-weight:800; }
+  .tap-wrap { display:flex; justify-content:center; padding:15px 0 18px; }
+  #tapButton { width:min(65vw,255px); aspect-ratio:1; border:0; border-radius:50%; cursor:pointer; color:#4d3510; background:radial-gradient(circle at 35% 25%,#fff1ad 0,#ffd66b 35%,#e9a82e 72%,#a86b16 100%); box-shadow:0 0 0 9px #ffffff0b,0 0 0 17px #ffffff07,0 16px 0 #8b571d,0 23px 35px #0007; font-size:1.4rem; font-weight:1000; transition:transform .08s,filter .1s; position:relative; user-select:none; -webkit-tap-highlight-color:transparent; }
+  #tapButton:active { transform:translateY(7px) scale(.98); box-shadow:0 0 0 9px #ffffff0b,0 0 0 17px #ffffff07,0 9px 0 #8b571d,0 15px 25px #0007; }
+  #tapButton .crown { display:block; font-size:4.3rem; line-height:1.1; filter:drop-shadow(0 3px 0 #b67a1c); }
+  #tapButton small { display:block; margin-top:7px; font-size:.72rem; letter-spacing:2px; }
+  .energy-head { display:flex; justify-content:space-between; color:var(--muted); font-size:.82rem; margin-bottom:8px; }
+  .bar { height:10px; border-radius:99px; background:#30395e; overflow:hidden; }
+  .bar > div { height:100%; width:100%; border-radius:99px; background:linear-gradient(90deg,#76e3c0,#b6ffca); transition:width .2s; }
+  .stats { display:grid; grid-template-columns:repeat(3,1fr); gap:9px; margin:18px 0; }
+  .stat { background:#1a2140d9; border:1px solid #30395e; padding:13px 8px; border-radius:15px; text-align:center; }
+  .stat .value { font-size:1.08rem; font-weight:900; }
+  .stat .label { color:var(--muted); font-size:.72rem; margin-top:4px; }
+  .panel { background:#1a2140e8; border:1px solid #30395e; border-radius:19px; padding:15px; margin-top:13px; }
+  .panel-title { display:flex; justify-content:space-between; align-items:center; gap:8px; font-weight:900; margin-bottom:12px; }
+  .upgrade { display:flex; align-items:center; gap:11px; }
+  .upgrade + .upgrade { border-top:1px solid #30395e; padding-top:13px; margin-top:13px; }
+  .upgrade-icon { width:43px; height:43px; display:grid; place-items:center; background:#2b355b; border-radius:13px; font-size:1.4rem; flex-shrink:0; }
+  .upgrade-info { flex:1; min-width:0; }
+  .upgrade-info strong { display:block; font-size:.9rem; }
+  .upgrade-info small { display:block; color:var(--muted); font-size:.75rem; margin-top:4px; }
+  button.action { border:0; border-radius:11px; padding:10px 12px; background:var(--gold); color:#38270b; font-weight:900; cursor:pointer; min-width:85px; }
+  button.action:disabled { background:#4b5272; color:#aab4d6; cursor:not-allowed; }
+  .daily { display:flex; align-items:center; gap:12px; }
+  .daily .text { flex:1; }
+  .daily .text strong { display:block; }
+  .daily .text small { display:block; color:var(--muted); margin-top:4px; line-height:1.4; }
+  .notice { color:var(--muted); text-align:center; font-size:.72rem; line-height:1.5; padding:17px 7px 0; }
+  .toast { position:fixed; top:18px; left:50%; transform:translate(-50%,-20px); opacity:0; pointer-events:none; background:#f5f7ff; color:#17203e; padding:10px 15px; border-radius:999px; font-weight:900; box-shadow:0 8px 30px #0005; transition:.2s; z-index:10; white-space:nowrap; }
+  .toast.show { opacity:1; transform:translate(-50%,0); }
+  .float { position:absolute; color:#fff4b4; font-size:1.15rem; font-weight:1000; pointer-events:none; animation:rise .7s ease-out forwards; text-shadow:0 2px 8px #0009; }
+  @keyframes rise { to { transform:translateY(-75px); opacity:0; } }
+  footer { display:flex; justify-content:center; gap:8px; margin-top:18px; color:#7f8bb4; font-size:.7rem; }
+  @media (max-width:360px) { .app{padding:14px 12px 24px}.stat{padding:11px 4px}.upgrade{gap:8px}button.action{min-width:75px;padding:9px} }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="brand">👑 Tap<span>Throne</span></div>
+    <div class="pill" id="levelPill">LEVEL 1</div>
+  </header>
+
+  <section class="hero">
+    <div class="eyebrow">YOUR TREASURY</div>
+    <div class="coins" id="coins">0</div>
+    <div class="coin-label">✦ THRONE COINS</div>
+  </section>
+
+  <div class="tap-wrap">
+    <button id="tapButton" aria-label="Tap to earn coins">
+      <span class="crown">👑</span>
+      TAP TO EARN
+      <small id="tapPowerLabel">+1 PER TAP</small>
+    </button>
+  </div>
+
+  <section>
+    <div class="energy-head"><span>⚡ Energy</span><strong id="energyText">1000 / 1000</strong></div>
+    <div class="bar"><div id="energyBar"></div></div>
+  </section>
+
+  <section class="stats">
+    <div class="stat"><div class="value" id="levelStat">1</div><div class="label">👑 Level</div></div>
+    <div class="stat"><div class="value" id="tapStat">+1</div><div class="label">🖐 Tap Power</div></div>
+    <div class="stat"><div class="value" id="nextLevel">100</div><div class="label">🎯 Next Level</div></div>
+  </section>
+
+  <section class="panel">
+    <div class="panel-title"><span>🚀 Upgrade Station</span><span style="color:var(--gold);font-size:.75rem">BOOST YOUR EARNINGS</span></div>
+    <div class="upgrade">
+      <div class="upgrade-icon">👆</div>
+      <div class="upgrade-info"><strong>Stronger Tap</strong><small id="tapUpgradeInfo">Earn more coins per tap</small></div>
+      <button class="action" id="tapUpgrade">🪙 50</button>
+    </div>
+    <div class="upgrade">
+      <div class="upgrade-icon">⚡</div>
+      <div class="upgrade-info"><strong>Energy Tank</strong><small id="energyUpgradeInfo">Increase maximum energy</small></div>
+      <button class="action" id="energyUpgrade">🪙 100</button>
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="panel-title">🎁 Daily Reward <span style="color:var(--gold);font-size:.8rem">+250 COINS</span></div>
+    <div class="daily">
+      <div class="upgrade-icon">🎉</div>
+      <div class="text"><strong>Come back every day</strong><small id="dailyInfo">Claim your daily bonus once every 24 hours.</small></div>
+      <button class="action" id="dailyButton">CLAIM</button>
+    </div>
+  </section>
+
+  <div class="notice">Demo game only. Coins are in-game points and have no cash or cryptocurrency value. Progress is saved in this browser on this device.</div>
+  <footer><span>TapThrone</span><span>•</span><span>Rule the taps. Claim the crown.</span></footer>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+(() => {
+  const SAVE_KEY = "tapthrone-demo-v1";
+  const DAILY_MS = 24 * 60 * 60 * 1000;
+  const defaultState = () => ({
+    coins: 0, energy: 1000, maxEnergy: 1000, tapPower: 1,
+    tapUpgradeLevel: 0, energyUpgradeLevel: 0, lastDaily: 0,
+    lastSavedAt: Date.now()
+  });
+  let state;
+  try {
+    const saved = JSON.parse(localStorage.getItem(SAVE_KEY) || "null");
+    state = saved && typeof saved.coins === "number" ? { ...defaultState(), ...saved } : defaultState();
+  } catch (_) { state = defaultState(); }
+
+  // Restore a little energy based on time away, capped at max energy.
+  const elapsedSeconds = Math.max(0, Math.floor((Date.now() - (state.lastSavedAt || Date.now())) / 1000));
+  state.energy = Math.min(state.maxEnergy, state.energy + elapsedSeconds);
+  let toastTimer;
+  const $ = id => document.getElementById(id);
+  const fmt = n => Math.floor(n).toLocaleString("en-US");
+  const levelFor = coins => Math.max(1, Math.floor(Math.max(0, coins) / 1000) + 1);
+  const nextLevelAt = coins => levelFor(coins) * 1000;
+
+  function save() {
+    state.lastSavedAt = Date.now();
+    try { localStorage.setItem(SAVE_KEY, JSON.stringify(state)); } catch (_) {}
+  }
+  function notify(message) {
+    $("toast").textContent = message;
+    $("toast").classList.add("show");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => $("toast").classList.remove("show"), 1500);
+  }
+  function render() {
+    const level = levelFor(state.coins);
+    $("coins").textContent = fmt(state.coins);
+    $("levelPill").textContent = "LEVEL " + level;
+    $("levelStat").textContent = level;
+    $("tapStat").textContent = "+" + fmt(state.tapPower);
+    $("tapPowerLabel").textContent = "+" + fmt(state.tapPower) + " PER TAP";
+    $("energyText").textContent = fmt(state.energy) + " / " + fmt(state.maxEnergy);
+    $("energyBar").style.width = (state.energy / state.maxEnergy * 100) + "%";
+    $("nextLevel").textContent = fmt(nextLevelAt(state.coins));
+    const tapCost = Math.floor(50 * Math.pow(1.7, state.tapUpgradeLevel));
+    const energyCost = Math.floor(100 * Math.pow(1.65, state.energyUpgradeLevel));
+    $("tapUpgrade").textContent = "🪙 " + fmt(tapCost);
+    $("energyUpgrade").textContent = "🪙 " + fmt(energyCost);
+    $("tapUpgrade").disabled = state.coins < tapCost;
+    $("energyUpgrade").disabled = state.coins < energyCost;
+    $("tapUpgradeInfo").textContent = "Tap power: " + fmt(state.tapPower) + " → " + fmt(state.tapPower + 1);
+    $("energyUpgradeInfo").textContent = "Max energy: " + fmt(state.maxEnergy) + " → " + fmt(state.maxEnergy + 500);
+    const remaining = DAILY_MS - (Date.now() - state.lastDaily);
+    $("dailyButton").disabled = remaining > 0;
+    $("dailyButton").textContent = remaining > 0 ? "CLAIMED" : "CLAIM";
+    $("dailyInfo").textContent = remaining > 0
+      ? "Next reward in " + Math.floor(remaining / 3600000) + "h " + Math.floor((remaining % 3600000) / 60000) + "m."
+      : "Your daily bonus is ready to collect!";
+  }
+  function floatCoin(event, amount) {
+    const el = document.createElement("span");
+    el.className = "float";
+    el.textContent = "+" + fmt(amount);
+    const rect = $("tapButton").getBoundingClientRect();
+    el.style.left = (event.clientX || rect.left + rect.width / 2) + "px";
+    el.style.top = (event.clientY || rect.top + rect.height / 2) + "px";
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 750);
+  }
+  $("tapButton").addEventListener("click", event => {
+    if (state.energy < 1) { notify("Out of energy! Wait for it to recharge."); return; }
+    const amount = Math.min(state.tapPower, state.energy);
+    state.coins += amount;
+    state.energy -= 1;
+    floatCoin(event, amount);
+    render();
+    save();
+  });
+  $("tapUpgrade").addEventListener("click", () => {
+    const cost = Math.floor(50 * Math.pow(1.7, state.tapUpgradeLevel));
+    if (state.coins < cost) return;
+    state.coins -= cost; state.tapPower += 1; state.tapUpgradeLevel++;
+    notify("Tap power upgraded! 👑"); render(); save();
+  });
+  $("energyUpgrade").addEventListener("click", () => {
+    const cost = Math.floor(100 * Math.pow(1.65, state.energyUpgradeLevel));
+    if (state.coins < cost) return;
+    state.coins -= cost; state.maxEnergy += 500; state.energy = Math.min(state.maxEnergy, state.energy + 500);
+    state.energyUpgradeLevel++;
+    notify("Energy tank upgraded! ⚡"); render(); save();
+  });
+  $("dailyButton").addEventListener("click", () => {
+    if (Date.now() - state.lastDaily < DAILY_MS) return;
+    state.coins += 250; state.lastDaily = Date.now();
+    notify("Daily reward collected! +250 🎁"); render(); save();
+  });
+  setInterval(() => {
+    if (state.energy < state.maxEnergy) {
+      state.energy = Math.min(state.maxEnergy, state.energy + 1);
+      render(); save();
+    } else if (Date.now() - state.lastSavedAt > 10000) save();
+  }, 1000);
+  window.addEventListener("beforeunload", save);
+  render();
+  save();
+})();
+</script>
+</body>
+</html>
