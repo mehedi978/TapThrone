@@ -237,7 +237,7 @@
   const botUsername = "TapThrone_bot";
   const userId = window.Telegram?.WebApp?.initDataUnsafe?.user?.id;
   const referralCode = userId ? String(userId) : "guest";
-  const link = "https://t.me/" + botUsername + "?start=" + encodeURIComponent("ref_" + referralCode);
+  const link = "https://t.me/" + botUsername + "?startapp=" + encodeURIComponent("ref_" + referralCode);
 
   document.getElementById("referral-link").value = link;
 
