@@ -222,36 +222,65 @@
 })();
 </script>
 <!-- TapThrone Referral Section -->
-<section id="referral-section" style="margin:20px 0;padding:18px;background:#202a24;border:1px solid #d9b45b;border-radius:16px;color:#fff;text-align:center;font-family:Arial,sans-serif">
-  <h2 style="color:#f4d16b;margin-top:0">👑 Invite Friends</h2>
-  <p>Invite friends to join TapThrone!</p>
-  <p style="font-size:13px;color:#ccc">Your referral link:</p>
-  <input id="referral-link" readonly value="Loading..." style="width:95%;box-sizing:border-box;padding:12px;border-radius:8px;border:0;margin-bottom:10px">
-  <button id="copy-referral" style="padding:12px 18px;border:0;border-radius:9px;background:#e8c35b;color:#161616;font-weight:bold">
-    Copy Referral Link
-  </button>
-  <p id="referral-message" style="font-size:13px;color:#b9e7b9"></p>
-</section>
-
 <script>
 (function () {
   const botUsername = "TapThrone_bot";
-  const userId = window.Telegram?.WebApp?.initDataUnsafe?.user?.id;
-  const referralCode = userId ? String(userId) : "guest";
-  const link = "https://t.me/" + botUsername + "?startapp=" + encodeURIComponent("ref_" + referralCode);
+  const apiUrl = "https://tapthrone-referral.mehedykhan23.workers.dev/api/referral";
+  const tg = window.Telegram?.WebApp;
 
-  document.getElementById("referral-link").value = link;
+  const input = document.getElementById("referral-link");
+  const button = document.getElementById("copy-referral");
+  const message = document.getElementById("referral-message");
 
-  document.getElementById("copy-referral").addEventListener("click", async function () {
-    const input = document.getElementById("referral-link");
+  if (tg) tg.ready();
+
+  const userId = tg?.initDataUnsafe?.user?.id;
+
+  if (!tg || !tg.initData || !userId) {
+    input.value = "";
+    input.placeholder = "Open the game inside Telegram";
+    message.textContent = "Open TapThrone from Telegram to get your referral link.";
+    button.disabled = true;
+    return;
+  }
+
+  const link =
+    "https://t.me/" + botUsername +
+    "?startapp=" + encodeURIComponent("ref_" + userId);
+
+  input.value = link;
+
+  fetch(apiUrl, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ initData: tg.initData })
+  })
+  .then(async response => {
+    const data = await response.json();
+
+    if (!response.ok || !data.ok) {
+      throw new Error(data.error || "Referral registration failed");
+    }
+
+    message.textContent = "Referral link ready! Invite your friends.";
+  })
+  .catch(error => {
+    console.error("Referral API error:", error);
+    message.textContent =
+      "Referral registration failed. Please reopen the game and try again.";
+  });
+
+  button.addEventListener("click", async function () {
     try {
       await navigator.clipboard.writeText(link);
-      document.getElementById("referral-message").textContent = "Referral link copied!";
-    } catch (e) {
+      message.textContent = "Referral link copied!";
+    } catch (error) {
       input.focus();
       input.select();
-      document.execCommand("copy");
-      document.getElementById("referral-message").textContent = "Copy the selected link if needed.";
+      const copied = document.execCommand("copy");
+      message.textContent = copied
+        ? "Referral link copied!"
+        : "Please copy the selected link.";
     }
   });
 })();
